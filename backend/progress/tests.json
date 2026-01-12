@@ -1,0 +1,15 @@
+{
+  "tests": [
+    {
+      "name": "Get client progress",
+      "method": "GET",
+      "path": "/?email=test@example.com",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "latestMetrics": {},
+        "history": {}
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

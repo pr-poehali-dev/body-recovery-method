@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calendar } from '@/components/ui/calendar';
@@ -8,10 +9,21 @@ import { Progress } from '@/components/ui/progress';
 import Icon from '@/components/ui/icon';
 import { useToast } from '@/hooks/use-toast';
 
+const APPOINTMENTS_API = 'https://functions.poehali.dev/db2ade7f-6bfc-47d7-b2e0-fe51bd2fd0b9';
+const CONTACT_API = 'https://functions.poehali.dev/6cfa1325-568d-43e5-8af3-46c6fe12c307';
+
 const Index = () => {
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string>('');
+  const [bookingEmail, setBookingEmail] = useState('');
+  const [bookingName, setBookingName] = useState('');
+  const [bookingPhone, setBookingPhone] = useState('');
+  const [contactName, setContactName] = useState('');
+  const [contactEmail, setContactEmail] = useState('');
+  const [contactPhone, setContactPhone] = useState('');
+  const [contactMessage, setContactMessage] = useState('');
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const timeSlots = ['09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
 
@@ -20,16 +32,96 @@ const Index = () => {
     element?.scrollIntoView({ behavior: 'smooth' });
   };
 
-  const handleBooking = () => {
-    if (date && selectedTime) {
-      toast({
-        title: 'Запись успешна!',
-        description: `Ваша консультация назначена на ${date.toLocaleDateString('ru-RU')} в ${selectedTime}`,
-      });
-    } else {
+  const handleBooking = async () => {
+    if (!date || !selectedTime || !bookingEmail || !bookingName) {
       toast({
         title: 'Ошибка',
-        description: 'Пожалуйста, выберите дату и время',
+        description: 'Пожалуйста, заполните все обязательные поля',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(APPOINTMENTS_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: bookingEmail,
+          name: bookingName,
+          phone: bookingPhone,
+          date: date.toISOString().split('T')[0],
+          time: selectedTime,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: 'Запись успешна!',
+          description: `Ваша консультация назначена на ${date.toLocaleDateString('ru-RU')} в ${selectedTime}`,
+        });
+        setBookingEmail('');
+        setBookingName('');
+        setBookingPhone('');
+        setSelectedTime('');
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось создать запись. Попробуйте позже.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleContactSubmit = async () => {
+    if (!contactName || !contactEmail || !contactMessage) {
+      toast({
+        title: 'Ошибка',
+        description: 'Пожалуйста, заполните все обязательные поля',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch(CONTACT_API, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: contactName,
+          email: contactEmail,
+          phone: contactPhone,
+          message: contactMessage,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        toast({
+          title: 'Сообщение отправлено!',
+          description: 'Мы свяжемся с вами в ближайшее время',
+        });
+        setContactName('');
+        setContactEmail('');
+        setContactPhone('');
+        setContactMessage('');
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error) {
+      toast({
+        title: 'Ошибка',
+        description: 'Не удалось отправить сообщение. Попробуйте позже.',
         variant: 'destructive',
       });
     }
@@ -41,7 +133,11 @@ const Index = () => {
         <div className="container mx-auto px-6 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-primary">Методика исцеления</h1>
-            <div className="hidden md:flex gap-8">
+            <div className="hidden md:flex gap-8 items-center">
+              <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+                <Icon name="User" className="mr-2" size={18} />
+                Личный кабинет
+              </Button>
               {['home', 'method', 'process', 'results', 'testimonials', 'contact'].map((section) => (
                 <button
                   key={section}
@@ -277,6 +373,32 @@ const Index = () => {
                 <CardTitle className="text-2xl">Выберите дату и время</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Ваше имя *</label>
+                  <Input
+                    placeholder="Введите ваше имя"
+                    value={bookingName}
+                    onChange={(e) => setBookingName(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Email *</label>
+                  <Input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={bookingEmail}
+                    onChange={(e) => setBookingEmail(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium mb-2 block">Телефон</label>
+                  <Input
+                    type="tel"
+                    placeholder="+7 (___) ___-__-__"
+                    value={bookingPhone}
+                    onChange={(e) => setBookingPhone(e.target.value)}
+                  />
+                </div>
                 <Calendar
                   mode="single"
                   selected={date}
@@ -310,22 +432,41 @@ const Index = () => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Ваше имя</label>
-                  <Input placeholder="Введите ваше имя" />
+                  <label className="text-sm font-medium mb-2 block">Ваше имя *</label>
+                  <Input
+                    placeholder="Введите ваше имя"
+                    value={contactName}
+                    onChange={(e) => setContactName(e.target.value)}
+                  />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Email</label>
-                  <Input type="email" placeholder="your@email.com" />
+                  <label className="text-sm font-medium mb-2 block">Email *</label>
+                  <Input
+                    type="email"
+                    placeholder="your@email.com"
+                    value={contactEmail}
+                    onChange={(e) => setContactEmail(e.target.value)}
+                  />
                 </div>
                 <div>
                   <label className="text-sm font-medium mb-2 block">Телефон</label>
-                  <Input type="tel" placeholder="+7 (___) ___-__-__" />
+                  <Input
+                    type="tel"
+                    placeholder="+7 (___) ___-__-__"
+                    value={contactPhone}
+                    onChange={(e) => setContactPhone(e.target.value)}
+                  />
                 </div>
                 <div>
-                  <label className="text-sm font-medium mb-2 block">Сообщение</label>
-                  <Textarea placeholder="Расскажите о вашем запросе..." rows={5} />
+                  <label className="text-sm font-medium mb-2 block">Сообщение *</label>
+                  <Textarea
+                    placeholder="Расскажите о вашем запросе..."
+                    rows={5}
+                    value={contactMessage}
+                    onChange={(e) => setContactMessage(e.target.value)}
+                  />
                 </div>
-                <Button className="w-full" size="lg">
+                <Button onClick={handleContactSubmit} className="w-full" size="lg">
                   Отправить сообщение
                 </Button>
                 <div className="pt-6 space-y-3">

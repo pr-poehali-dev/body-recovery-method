@@ -1,0 +1,31 @@
+{
+  "tests": [
+    {
+      "name": "Create appointment",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "email": "test@example.com",
+        "name": "Test Client",
+        "phone": "+7 999 123-45-67",
+        "date": "2024-12-20",
+        "time": "10:00"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Get appointments by email",
+      "method": "GET",
+      "path": "/?email=test2@example.com",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "appointments": []
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

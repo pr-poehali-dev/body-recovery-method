@@ -1,0 +1,20 @@
+{
+  "tests": [
+    {
+      "name": "Submit contact form",
+      "method": "POST",
+      "path": "/",
+      "body": {
+        "name": "Test User",
+        "email": "test@example.com",
+        "phone": "+7 999 123-45-67",
+        "message": "Test message content"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

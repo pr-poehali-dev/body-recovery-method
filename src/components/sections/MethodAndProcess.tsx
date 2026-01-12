@@ -20,7 +20,7 @@ export const MethodAndProcess = () => {
               {
                 icon: 'Heart',
                 title: 'Духовный рост',
-                description: 'Познание себя, поиск смысла и гармонии с миром',
+                description: 'Раскрытие себя и достижение гармонии через законы и энергии Творения мира',
               },
               {
                 icon: 'Sparkles',

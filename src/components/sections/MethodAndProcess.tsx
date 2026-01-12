@@ -70,7 +70,7 @@ export const MethodAndProcess = () => {
                 step: '3',
                 title: 'Активная работа',
                 description: 'Регулярные сеансы и практики для активации механизмов исцеления',
-                duration: '2-3 месяца',
+                duration: '1 месяц',
               },
               {
                 step: '4',
